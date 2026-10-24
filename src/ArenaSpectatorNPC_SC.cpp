@@ -24,6 +24,7 @@
 #include "ArenaSpectator.h"
 #include "ArenaSpectatorNPC.h"
 #include "Chat.h"
+#include "ObjectMgr.h"
 #include "ScriptedGossip.h"
 #include "ScriptMgr.h"
 #include "World.h"
@@ -159,18 +160,12 @@ public:
         }
 
         if (action == NPC_SPECTATOR_ACTION_SPECIFIC) {
-            const char *plrName = code;
-
-            char playerName[50];
-            strcpy(playerName, plrName);
-
-            for (int i = 0; i < 13; i++) {
-                if (!playerName[i])
-                    break;
-                if (i == 0 && playerName[i] > 96)
-                    playerName[0] -= 32;
-                else if (playerName[i] < 97)
-                    playerName[i] += 32;
+            std::string playerName = code;
+            if (!normalizePlayerName(playerName))
+            {
+                ChatHandler(player->GetSession()).PSendSysMessage("Invalid player name.");
+                OnGossipHello(player, creature);
+                return false;
             }
 
             if (Player * target = ObjectAccessor::FindPlayerByName(playerName)) {
